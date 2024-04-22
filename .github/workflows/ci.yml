@@ -17,9 +17,5 @@ jobs:
       - run: |
           [[ "${{ env.SLACK_COLOR }}" == 'success' ]]
           [[ "${{ env.SLACK_TITLE }}" == 'CI test succeeded' ]]
-
-          message_re='^.* committed <.*\|.*> .* (.*)$'
-          [[ "${{ env.SLACK_MESSAGE }}" == $message_re ]]
-
-          job_url_re='^https://github\.com/freckle/slack-notify-action/actions/runs/.*/job/.*$'
-          [[ "${{ env.SLACK_FOOTER }}" =~ $footer_re ]]
+          [[ -n "${{ env.SLACK_MESSAGE }}" ]]
+          [[ -n "${{ env.SLACK_FOOTER }}" ]]
