@@ -1,0 +1,90 @@
+name: Notify Slack
+author: Freckle
+description: |
+  Minimal inputs action to notify Slack of Job status
+
+inputs:
+  slack-webhook-url:
+    description: ""
+    required: true
+
+  slack-channel:
+    description: |
+      Explicit channel for this notification. If omitted (the default), the
+      channel configured in the webhook is used.
+    required: false
+    default: ""
+
+  event-name:
+    description: |
+      A name for the event being notified about. If not given, the
+      workflow and job id is used.
+    required: false
+    default: ""
+
+  message:
+    description: |
+      Additional content to add to the message. Details about the commit that
+      triggered the Job in which this step is run are always included.
+    required: false
+    default: ""
+
+  commit-sha:
+    description: |
+      Commit SHA to fetch details for. Default is the PR head sha or github.sha
+      if not in the context of a PR.
+    required: false
+    default: '${{ github.event.pull_request.head.sha || github.sha }}'
+
+  slack-users:
+    description: |
+      A JSON object (as a string in the Yaml) mapping GitHub usernames to Slack
+      User Ids (e.g. UXXXXXX). If present, the commit author is looked up in the
+      map and the Slack user, if found, is at-mentioned in the notification
+      details. If a Slack user is not found, an error is generated as a build
+      annotation.
+    required: false
+    default: ""
+
+  slack-users-file:
+    description: |
+      Relative path within the repository to read the slack-users JSON from a
+      file. The file is read from the default branch via the API.
+    required: false
+    default: ""
+
+  github-token:
+    description: ""
+    required: false
+    default: '${{ github.token }}'
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        echo "$GITHUB_ACTION_PATH/bin" >>"$GITHUB_PATH"
+        mkslackenv >>"$GITHUB_ENV" <<'EOM'
+        ${{ inputs.message }}
+        EOM
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+
+        # Some of these may already be set, but we'll be explicit
+        GITHUB_JOB: ${{ github.job }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_WORKFLOW: ${{ github.workflow }}
+        INPUTS_COMMIT_SHA: ${{ inputs.commit-sha }}
+        INPUTS_EVENT_NAME: ${{ inputs.event_name }}
+        INPUTS_SLACK_USERS: ${{ inputs.slack-users }}
+        INPUTS_SLACK_USERS_FILE: ${{ inputs.slack-users-file }}
+        JOB_STATUS: ${{ job.status }}
+
+    - uses: rtCamp/action-slack-notify@v2
+      env:
+        MSG_MINIMAL: "true" # SLACK_MESSAGE will include all details
+        SLACK_ICON: https://github.com/freckle-automation.png?size=48
+        SLACK_USERNAME: GitHub Actions
+        SLACK_WEBHOOK: ${{ inputs.slack-webhook-url }}
+        SLACK_CHANNEL: ${{ inputs.slack-channel }}

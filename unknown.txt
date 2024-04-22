@@ -1,0 +1,13 @@
+Your username is missing from slack-notify users mapping.
+
+Without your username present in this file, Slack notifications may not
+highlight you correctly.
+
+::group::Expand for instructions to find your Slack User Id
+
+1. View your profile
+2. Click the three-dots in the upper section
+3. Select "Copy member ID"
+
+::endgroup::
+::error title=Your username is missing from slack-notify users::Please add your GitHub username as a key, with Slack User ID as value

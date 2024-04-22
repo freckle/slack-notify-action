@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# https://unix.stackexchange.com/a/451250
+relative_date() {
+  awk -v date="$(date +%s -d "$1")" -v now="$(date +%s)" '
+    BEGIN {  diff = now - date;
+       if (diff > (24*60*60)) printf "%.0f days ago", diff/(24*60*60);
+       else if (diff > (60*60)) printf "%.0f hours ago", diff/(60*60);
+       else if (diff > 60) printf "%.0f minutes ago", diff/60;
+       else printf "%s seconds ago", diff;
+    }'
+}
+
+# If slack-users is set, print it. If slack-users-file is set, read it.
+# Otherwise returns 1 to signify slack-users were not configured.
+get_slack_json() {
+  if [[ -n "$INPUTS_SLACK_USERS" ]]; then
+    echo "$INPUTS_SLACK_USERS"
+  elif [[ -n "$INPUTS_SLACK_USERS_FILE" ]]; then
+    gh api "/repos/$GITHUB_REPOSITORY/contents/$INPUTS_SLACK_USERS_FILE" --jq '.content' | base64 -d
+  else
+    return 1
+  fi
+}
+
+# Find and format the slack user for the given GH username, or return the
+# username as-is if slack-users was not configured.
+get_slack_author() {
+  if ! get_slack_json | jq -r ".\"$1\" // \"unknown\" | \"<@\" + . + \">\""; then
+    echo "$1"
+  fi
+}
+
+print_job_url() {
+  gh --repo "$GITHUB_REPOSITORY" run view "$GITHUB_RUN_ID" \
+    --json jobs \
+    --jq ".jobs[] | select(.name == \"$GITHUB_JOB\") | .url"
+}
+
+event_name=$INPUTS_EVENT_NAME
+event_name=${event_name:-$GITHUB_WORKFLOW $GITHUB_JOB}
+
+commit_sha_short=$(head -c 7 <<<"$INPUTS_COMMIT_SHA")
+commit_url=https://github.com/$GITHUB_REPOSITORY/commit/$INPUTS_COMMIT_SHA
+
+case "$JOB_STATUS" in
+  success)
+    echo "SLACK_TITLE=$event_name succeeded"
+    echo "SLACK_COLOR=success"
+    ;;
+  failure)
+    echo "SLACK_TITLE=$event_name failed"
+    echo "SLACK_COLOR=danger"
+    ;;
+  cancelled)
+    echo "SLACK_TITLE=$event_name was cancelled"
+    echo "SLACK_COLOR=grey"
+    ;;
+esac
+
+commit_json=$(gh api "/repos/$GITHUB_REPOSITORY/commits/$INPUTS_COMMIT_SHA")
+commit_timestamp=$(jq -r '.commit.committer.date' <<<"$commit_json")
+commit_author=$(jq -r '.author.login' <<<"$commit_json")
+author="$(get_slack_author "$commit_author")"
+
+echo "SLACK_MESSAGE<<EOM"
+printf '%s committed <%s|%s> %s (%s)\n' \
+  "$author" \
+  "$commit_url" \
+  "$commit_sha_short" \
+  "$(relative_date "$commit_timestamp")" \
+  "$commit_timestamp"
+cat # extra message on stdin
+echo "EOM"
+
+printf "SLACK_FOOTER=%s\n" "$(print_job_url)"
+
+if [[ "$author" == '<@unknown>' ]]; then
+  cat "$GITHUB_ACTION_PATH/unknown.txt" >&2
+fi
