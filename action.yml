@@ -5,7 +5,8 @@ description: |
 
 inputs:
   slack-webhook-url:
-    description: ""
+    description: |
+      Slack webhook url, typically a repository secret.
     required: true
 
   slack-channel:
@@ -58,30 +59,125 @@ inputs:
     required: false
     default: '${{ github.token }}'
 
+  dry-run:
+    description: "Don't actually notify (useful for testing)"
+    required: false
+    default: false
+
 runs:
   using: composite
   steps:
     - shell: bash
+      name: Set global ENV
       run: |
-        echo "$GITHUB_ACTION_PATH/bin" >>"$GITHUB_PATH"
-        mkslackenv >>"$GITHUB_ENV" <<'EOM'
-        ${{ inputs.message }}
+        cat >>"$GITHUB_ENV" <<'EOM'
+        COMMIT_JSON=/tmp/commit.json
+        SLACK_USERS_JSON=/tmp/slack-users.json
         EOM
+
+    - shell: bash
+      name: Fetch commit.json
+      run: gh api "/repos/${{ github.repository }}/commits/$COMMIT_SHA" >"$COMMIT_JSON"
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        COMMIT_SHA: ${{ inputs.commit-sha }}
+
+    - if: ${{ inputs.slack-users }}
+      shell: bash
+      name: Write slack-users.json from input
+      run: echo "$USERS" >"$SLACK_USERS_JSON"
+      env:
+        USERS: ${{ inputs.slack-users }}
+
+    - if: ${{ inputs.slack-users-file }}
+      shell: bash
+      name: Write slack-users.json from repository file
+      run: |
+        gh api "/repos/${{ github.repository }}/contents/$USERS_FILE" --jq '.content' |
+          base64 -d >"$SLACK_USERS_JSON"
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        USERS_FILE: ${{ inputs.slack-users-file }}
+
+    - shell: bash
+      name: Set SLACK_TITLE
+      run: |
+        event_name=$EVENT_NAME
+        event_name=${event_name:-${{ github.workflow }} ${{ github.job }}}
+
+        {
+          case "${{ job.status }}" in
+            success)
+              echo "SLACK_TITLE=$event_name succeeded"
+              echo "SLACK_COLOR=success"
+              ;;
+            failure)
+              echo "SLACK_TITLE=$event_name failed"
+              echo "SLACK_COLOR=danger"
+              ;;
+            cancelled)
+              echo "SLACK_TITLE=$event_name was cancelled"
+              echo "SLACK_COLOR=grey"
+              ;;
+          esac
+        } >> "$GITHUB_ENV"
+      env:
+        EVENT_NAME: ${{ inputs.event-name }}
+
+    - shell: bash
+      name: Set SLACK_MESSAGE
+      run: |
+        # https://unix.stackexchange.com/a/451250
+        relative_date() {
+          awk -v date="$(date +%s -d "$1")" -v now="$(date +%s)" '
+            BEGIN {  diff = now - date;
+               if (diff > (24*60*60)) printf "%.0f days ago", diff/(24*60*60);
+               else if (diff > (60*60)) printf "%.0f hours ago", diff/(60*60);
+               else if (diff > 60) printf "%.0f minutes ago", diff/60;
+               else printf "%s seconds ago", diff;
+            }'
+        }
+
+        commit_author=$(jq -r '.author.login' "$COMMIT_JSON")
+        commit_timestamp=$(jq -r '.commit.committer.date' "$COMMIT_JSON")
+        commit_timestamp_r=$(relative_date "$commit_timestamp")
+        commit_sha_short=$(jq -r '.sha' "$COMMIT_JSON" | head -c 7)
+        commit_url=$(jq -r '.url' "$COMMIT_JSON")
+
+        if [[ -f "$SLACK_USERS_JSON" ]]; then
+          author=$(jq -r ".\"$commit_author\" // \"unknown\" | \"<@\" + . + \">\"" "$SLACK_USERS_JSON")
+        else
+          author="$commit_author"
+        fi
+
+        {
+          echo "SLACK_MESSAGE<<EOM"
+          printf '%s committed <%s|%s> %s (%s)\n' \
+            "$author" \
+            "$commit_url" \
+            "$commit_sha_short" \
+            "$commit_timestamp_r" \
+            "$commit_timestamp"
+          cat # extra message on stdin
+          echo "EOM"
+        } >>"$GITHUB_ENV"
+
+        if [[ "$author" == '<@unknown>' ]]; then
+          cat "$GITHUB_ACTION_PATH/unknown.txt" >&2
+        fi
+
+    - shell: bash
+      name: Set SLACK_FOOTER
+      run: |
+        gh --repo '${{ github.repository }}' run view '${{ github.run_id }}' \
+          --json jobs \
+          --jq '.jobs[] | select(.name == "${{ github.job }}") | "SLACK_FOOTER=" + .url' >>"$GITHUB_ENV"
       env:
         GH_TOKEN: ${{ inputs.github-token }}
 
-        # Some of these may already be set, but we'll be explicit
-        GITHUB_JOB: ${{ github.job }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_RUN_ID: ${{ github.run_id }}
-        GITHUB_WORKFLOW: ${{ github.workflow }}
-        INPUTS_COMMIT_SHA: ${{ inputs.commit-sha }}
-        INPUTS_EVENT_NAME: ${{ inputs.event_name }}
-        INPUTS_SLACK_USERS: ${{ inputs.slack-users }}
-        INPUTS_SLACK_USERS_FILE: ${{ inputs.slack-users-file }}
-        JOB_STATUS: ${{ job.status }}
-
-    - uses: rtCamp/action-slack-notify@v2
+    - if: ${{ inputs.dry-run != 'true' }}
+      name: Notify
+      uses: rtCamp/action-slack-notify@v2
       env:
         MSG_MINIMAL: "true" # SLACK_MESSAGE will include all details
         SLACK_ICON: https://github.com/freckle-automation.png?size=48
