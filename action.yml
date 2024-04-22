@@ -35,7 +35,7 @@ inputs:
       Commit SHA to fetch details for. Default is the PR head sha or github.sha
       if not in the context of a PR.
     required: false
-    default: '${{ github.event.pull_request.head.sha || github.sha }}'
+    default: "${{ github.event.pull_request.head.sha || github.sha }}"
 
   slack-users:
     description: |
@@ -57,7 +57,7 @@ inputs:
   github-token:
     description: ""
     required: false
-    default: '${{ github.token }}'
+    default: "${{ github.token }}"
 
   dry-run:
     description: "Don't actually notify (useful for testing)"
