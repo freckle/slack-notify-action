@@ -44,14 +44,6 @@ Minimal inputs action to notify Slack of Job status
 
 <!-- action-docs-outputs source="action.yml" -->
 
-<!-- action-docs-runs action="action.yml" -->
-
-## Runs
-
-This action is a `composite` action.
-
-<!-- action-docs-runs action="action.yml" -->
-
 <!-- action-docs-usage action="action.yml" project="freckle/slack-notify-action" version="v1" -->
 
 ## Usage
@@ -137,7 +129,7 @@ This action is a `composite` action.
       }
 ```
 
-If this file gets too big you can store it in the repository instead:
+If this content gets too big, you can store it in the repository instead:
 
 ```yaml
 - uses: freckle/slack-notify-action@v1
