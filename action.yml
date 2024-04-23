@@ -118,7 +118,7 @@ runs:
       run: |
         # Set JOB_NAME
         job_name=$INPUT_JOB_NAME
-        job_name=${job_name:-JOB_BY_ID_NAME}
+        job_name=${job_name:-$JOB_BY_ID_NAME}
         echo "JOB_NAME=$job_name" >>"$GITHUB_ENV"
       env:
         INPUT_JOB_NAME: ${{ inputs.job-name || github.job }}
