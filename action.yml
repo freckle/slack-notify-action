@@ -76,8 +76,9 @@ runs:
         EOM
 
     - shell: bash
-      name: Fetch commit.json
-      run: gh api "/repos/${{ github.repository }}/commits/$COMMIT_SHA" >"$COMMIT_JSON"
+      run: |
+        # Fetch commit.json
+        gh api "/repos/${{ github.repository }}/commits/$COMMIT_SHA" >"$COMMIT_JSON"
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         COMMIT_SHA: ${{ inputs.commit-sha }}
