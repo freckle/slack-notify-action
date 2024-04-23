@@ -118,6 +118,9 @@ Minimal inputs action to notify Slack of Job status
 
 ## Slack Users
 
+If told the mapping from GitHub Username to Slack User Id, this action will
+at-mention the author of the commit in which the Job is running:
+
 ```yaml
 - uses: freckle/slack-notify-action@v1
   with:
