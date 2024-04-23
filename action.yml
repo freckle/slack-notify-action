@@ -54,6 +54,13 @@ inputs:
     required: false
     default: ""
 
+  job-name:
+    description: |
+      An explicit job-name, in cases where github.job (the job.id) won't work
+      such as matrix jobs.
+    required: false
+    default: ""
+
   github-token:
     description: ""
     required: false
@@ -170,11 +177,23 @@ runs:
     - shell: bash
       run: |
         # Set SLACK_FOOTER
-        gh --repo '${{ github.repository }}' run view '${{ github.run_id }}' \
-          --json jobs \
-          --jq '.jobs[] | select(.name == "${{ github.job }}") | "SLACK_FOOTER=" + .url' >>"$GITHUB_ENV"
+        url=$(
+          gh --repo '${{ github.repository }}' run view '${{ github.run_id }}' \
+            --json jobs \
+            --jq ".jobs[] | select(.name == \"$JOB_NAME\") | .url"
+        )
+
+        if [[ -z "$url" ]]; then
+          echo "No Job with name $JOB_NAME found in Workflow Runs:" >&2
+          gh --repo '${{ github.repository }}' run view '${{ github.run_id }}' \
+            --json jobs --jq '.jobs[] | .name' >&2
+          exit 1
+        fi
+
+        echo "SLACK_FOOTER=$url" >>"$GITHUB_ENV"
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        JOB_NAME: ${{ inputs.job-name || github.job }}
 
     - if: ${{ inputs.dry-run != 'true' }}
       name: Notify
