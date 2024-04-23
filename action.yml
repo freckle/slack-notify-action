@@ -142,7 +142,7 @@ runs:
         commit_timestamp=$(jq -r '.commit.committer.date' "$COMMIT_JSON")
         commit_timestamp_r=$(relative_date "$commit_timestamp")
         commit_sha_short=$(jq -r '.sha' "$COMMIT_JSON" | head -c 7)
-        commit_url=$(jq -r '.url' "$COMMIT_JSON")
+        commit_url=$(jq -r '.html_url' "$COMMIT_JSON")
 
         if [[ -f "$SLACK_USERS_JSON" ]]; then
           author=$(jq -r ".\"$commit_author\" // \"unknown\" | \"<@\" + . + \">\"" "$SLACK_USERS_JSON")
