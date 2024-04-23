@@ -116,9 +116,19 @@ runs:
 
     - shell: bash
       run: |
+        # Set JOB_NAME
+        job_name=$INPUT_JOB_NAME
+        job_name=${job_name:-JOB_BY_ID_NAME}
+        echo "JOB_NAME=job_name" >>"$GITHUB_ENV"
+      env:
+        INPUT_JOB_NAME=${{ inputs.job-name || github.job }}
+        JOB_BY_ID_NAME=${{ github.jobs[github.job].name }}
+
+    - shell: bash
+      run: |
         # Set SLACK_TITLE
         event_name=$EVENT_NAME
-        event_name=${event_name:-${{ github.workflow }} ${{ github.job }}}
+        event_name=${event_name:-${{ github.workflow }} $JOB_NAME}
 
         {
           case "${{ inputs.job-status || job.status }}" in
@@ -203,7 +213,6 @@ runs:
         echo "SLACK_FOOTER=$url" >>"$GITHUB_ENV"
       env:
         GH_TOKEN: ${{ inputs.github-token }}
-        JOB_NAME: ${{ inputs.job-name || github.job }}
 
     - if: ${{ inputs.dry-run != 'true' }}
       name: Notify
