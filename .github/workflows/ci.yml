@@ -20,6 +20,27 @@ jobs:
           [[ -n "${{ env.SLACK_MESSAGE }}" ]]
           [[ -n "${{ env.SLACK_FOOTER }}" ]]
 
+  test-named:
+    name: "My Cool Job"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env:
+          - dev
+          - prod
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          slack-webhook-url: unused
+          dry-run: true
+      - run: |
+          [[ "${{ env.SLACK_COLOR }}" == 'success' ]]
+          [[ "${{ env.SLACK_TITLE }}" == 'CI test-matrix succeeded' ]]
+          [[ -n "${{ env.SLACK_MESSAGE }}" ]]
+          [[ -n "${{ env.SLACK_FOOTER }}" ]]
+
   test-matrix:
     runs-on: ubuntu-latest
     strategy:
@@ -33,7 +54,6 @@ jobs:
       - uses: ./
         with:
           slack-webhook-url: unused
-          job-name: "${{ github.job }} (${{ matrix.env }})"
           dry-run: true
       - run: |
           [[ "${{ env.SLACK_COLOR }}" == 'success' ]]
