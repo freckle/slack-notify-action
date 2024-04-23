@@ -127,8 +127,8 @@ Minimal inputs action to notify Slack of Job status
 ## Job Name
 
 In order to locate the URL to the Job in which we're running, we need to know
-the Job *Name*. Within the action, GitHub exposes `github.job`, which is the Job
-*Id*. These are usually the same, unless you've given an explicit `name` or are
+the Job _Name_. Within the action, GitHub exposes `github.job`, which is the Job
+_Id_. These are usually the same, unless you've given an explicit `name` or are
 running the Job in a matrix. If either of these are true, the action cannot
 determine the Job URL and will error. Unfortunately, GitHub does not offer any
 way for us to handle this, so you must provide the `job-name` input from the
@@ -139,10 +139,10 @@ You can do so literally:
 ```yaml
 name: "My Cool Job"
 steps:
- - uses: freckle/slack-notify-action@v1
-   with:
-     slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
-     job-name: "My Cool Job"
+  - uses: freckle/slack-notify-action@v1
+    with:
+      slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+      job-name: "My Cool Job"
 ```
 
 Or dynamically:
@@ -150,10 +150,10 @@ Or dynamically:
 ```yaml
 name: "My Cool Job"
 steps:
- - uses: freckle/slack-notify-action@v1
-   with:
-     slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
-     job-name: ${{ github.jobs[github.job].name }}
+  - uses: freckle/slack-notify-action@v1
+    with:
+      slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+      job-name: ${{ github.jobs[github.job].name }}
 ```
 
 And for matrices:
@@ -166,10 +166,10 @@ strategy:
       - prod
 
 steps:
- - uses: freckle/slack-notify-action@v1
-   with:
-     slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
-     job-name: ${{ github.job }} (${{ matrix.env }})
+  - uses: freckle/slack-notify-action@v1
+    with:
+      slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+      job-name: ${{ github.job }} (${{ matrix.env }})
 ```
 
 ## Slack Users
