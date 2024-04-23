@@ -68,8 +68,8 @@ runs:
   using: composite
   steps:
     - shell: bash
-      name: Set global ENV
       run: |
+        # Set global ENV
         cat >>"$GITHUB_ENV" <<'EOM'
         COMMIT_JSON=/tmp/commit.json
         SLACK_USERS_JSON=/tmp/slack-users.json
@@ -91,8 +91,8 @@ runs:
 
     - if: ${{ inputs.slack-users-file }}
       shell: bash
-      name: Write slack-users.json from repository file
       run: |
+        # Write slack-users.json from repository file
         gh api "/repos/${{ github.repository }}/contents/$USERS_FILE" --jq '.content' |
           base64 -d >"$SLACK_USERS_JSON"
       env:
@@ -100,8 +100,8 @@ runs:
         USERS_FILE: ${{ inputs.slack-users-file }}
 
     - shell: bash
-      name: Set SLACK_TITLE
       run: |
+        # Set SLACK_TITLE
         event_name=$EVENT_NAME
         event_name=${event_name:-${{ github.workflow }} ${{ github.job }}}
 
@@ -125,8 +125,8 @@ runs:
         EVENT_NAME: ${{ inputs.event-name }}
 
     - shell: bash
-      name: Set SLACK_MESSAGE
       run: |
+        # Set SLACK_MESSAGE
         # https://unix.stackexchange.com/a/451250
         relative_date() {
           awk -v date="$(date +%s -d "$1")" -v now="$(date +%s)" '
@@ -167,8 +167,8 @@ runs:
         fi
 
     - shell: bash
-      name: Set SLACK_FOOTER
       run: |
+        # Set SLACK_FOOTER
         gh --repo '${{ github.repository }}' run view '${{ github.run_id }}' \
           --json jobs \
           --jq '.jobs[] | select(.name == "${{ github.job }}") | "SLACK_FOOTER=" + .url' >>"$GITHUB_ENV"
