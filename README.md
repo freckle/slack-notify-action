@@ -132,9 +132,7 @@ _Id_. These are usually the same, unless you've given an explicit `name` or are
 running the Job in a matrix. If either of these are true, the action cannot
 determine the Job URL and will error. Unfortunately, GitHub does not offer any
 way for us to handle this, so you must provide the `job-name` input from the
-outside.
-
-You can do so literally:
+outside:
 
 ```yaml
 name: "My Cool Job"
@@ -145,18 +143,7 @@ steps:
       job-name: "My Cool Job"
 ```
 
-Or dynamically:
-
-```yaml
-name: "My Cool Job"
-steps:
-  - uses: freckle/slack-notify-action@v1
-    with:
-      slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
-      job-name: ${{ github.jobs[github.job].name }}
-```
-
-And for matrices:
+For matrices, as least you can build it dynamically:
 
 ```yaml
 strategy:
