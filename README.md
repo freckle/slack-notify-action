@@ -35,6 +35,7 @@ Minimal inputs action to notify Slack of Job status
 | `commit-sha`        | <p>Commit SHA to fetch details for. Default is the PR head sha or github.sha if not in the context of a PR.</p>                                                                                                                                                                                                       | `false`  | `${{ github.event.pull_request.head.sha \|\| github.sha }}` |
 | `slack-users`       | <p>A JSON object (as a string in the Yaml) mapping GitHub usernames to Slack User Ids (e.g. UXXXXXX). If present, the commit author is looked up in the map and the Slack user, if found, is at-mentioned in the notification details. If a Slack user is not found, an error is generated as a build annotation.</p> | `false`  | `""`                                                        |
 | `slack-users-file`  | <p>Relative path within the repository to read the slack-users JSON from a file. The file is read from the default branch via the API.</p>                                                                                                                                                                            | `false`  | `""`                                                        |
+| `job-name`          | <p>An explicit job-name, in cases where github.job (the job.id) won't work such as matrix jobs.</p>                                                                                                                                                                                                                   | `false`  | `""`                                                        |
 | `github-token`      |                                                                                                                                                                                                                                                                                                                       | `false`  | `${{ github.token }}`                                       |
 | `dry-run`           | <p>Don't actually notify (useful for testing)</p>                                                                                                                                                                                                                                                                     | `false`  | `false`                                                     |
 
@@ -102,6 +103,13 @@ Minimal inputs action to notify Slack of Job status
     # Required: false
     # Default: ""
 
+    job-name:
+    # An explicit job-name, in cases where github.job (the job.id) won't work
+    # such as matrix jobs.
+    #
+    # Required: false
+    # Default: ""
+
     github-token:
     #
     # Required: false
@@ -115,6 +123,54 @@ Minimal inputs action to notify Slack of Job status
 ```
 
 <!-- action-docs-usage action="action.yml" project="freckle/slack-notify-action" version="v1" -->
+
+## Job Name
+
+In order to locate the URL to the Job in which we're running, we need to know
+the Job *Name*. Within the action, GitHub exposes `github.job`, which is the Job
+*Id*. These are usually the same, unless you've given an explicit `name` or are
+running the Job in a matrix. If either of these are true, the action cannot
+determine the Job URL and will error. Unfortunately, GitHub does not offer any
+way for us to handle this, so you must provide the `job-name` input from the
+outside.
+
+You can do so literally:
+
+```yaml
+name: "My Cool Job"
+steps:
+ - uses: freckle/slack-notify-action@v1
+   with:
+     slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+     job-name: "My Cool Job"
+```
+
+Or dynamically:
+
+```yaml
+name: "My Cool Job"
+steps:
+ - uses: freckle/slack-notify-action@v1
+   with:
+     slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+     job-name: ${{ github.jobs[github.job].name }}
+```
+
+And for matrices:
+
+```yaml
+strategy:
+  matrix:
+    env:
+      - dev
+      - prod
+
+steps:
+ - uses: freckle/slack-notify-action@v1
+   with:
+     slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+     job-name: ${{ github.job }} (${{ matrix.env }})
+```
 
 ## Slack Users
 
