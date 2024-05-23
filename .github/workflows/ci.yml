@@ -13,6 +13,9 @@ jobs:
       - uses: ./
         with:
           slack-webhook-url: unused
+          message: |
+            Some extra message content
+            that is multi-line
           dry-run: true
 
       - uses: bats-core/bats-action@2.0.0
@@ -28,8 +31,12 @@ jobs:
 
           assert_equal "$SLACK_COLOR" 'success'
           assert_equal "$SLACK_TITLE" 'CI test succeeded'
-          assert test -n "$SLACK_MESSAGE"
           assert test -n "$SLACK_FOOTER"
+
+          run echo "$SLACK_MESSAGE"
+          assert_line --index 0 --regexp '^[^ ]* committed'
+          assert_line --index 1 'Some extra message content'
+          assert_line --index 2 'that is multi-line'
           EOM
 
       - name: Test
