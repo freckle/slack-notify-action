@@ -166,13 +166,15 @@ runs:
             "$commit_sha_short" \
             "$commit_timestamp_r" \
             "$commit_timestamp"
-          cat # extra message on stdin
+          echo "$MESSAGE"
           echo "EOM"
         } >>"$GITHUB_ENV"
 
         if [[ "$author" == '<@unknown>' ]]; then
           cat "$GITHUB_ACTION_PATH/unknown.txt" >&2
         fi
+      env:
+        MESSAGE: ${{ inputs.message }}
 
     - shell: bash
       run: |
