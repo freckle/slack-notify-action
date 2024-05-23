@@ -14,11 +14,26 @@ jobs:
         with:
           slack-webhook-url: unused
           dry-run: true
-      - run: |
-          [[ "${{ env.SLACK_COLOR }}" == 'success' ]]
-          [[ "${{ env.SLACK_TITLE }}" == 'CI test succeeded' ]]
-          [[ -n "${{ env.SLACK_MESSAGE }}" ]]
-          [[ -n "${{ env.SLACK_FOOTER }}" ]]
+
+      - uses: bats-core/bats-action@2.0.0
+        with:
+          support-path: /usr/lib/bats/bats-support
+          assert-path: /usr/lib/bats/bats-assert
+
+      - name: Setup
+        run: |
+          cat >test.bats <<'EOM'
+          bats_load_library bats-support
+          bats_load_library bats-assert
+
+          assert_equal "$SLACK_COLOR" 'success'
+          assert_equal "$SLACK_TITLE" 'CI test succeeded'
+          assert test -n "$SLACK_MESSAGE"
+          assert test -n "$SLACK_FOOTER"
+          EOM
+
+      - name: Test
+        run: bats test.bats
 
   test-matrix:
     runs-on: ubuntu-latest
@@ -35,8 +50,23 @@ jobs:
           slack-webhook-url: unused
           job-name: "${{ github.job }} (${{ matrix.env }})"
           dry-run: true
-      - run: |
-          [[ "${{ env.SLACK_COLOR }}" == 'success' ]]
-          [[ "${{ env.SLACK_TITLE }}" == 'CI test-matrix succeeded' ]]
-          [[ -n "${{ env.SLACK_MESSAGE }}" ]]
-          [[ -n "${{ env.SLACK_FOOTER }}" ]]
+
+      - uses: bats-core/bats-action@2.0.0
+        with:
+          support-path: /usr/lib/bats/bats-support
+          assert-path: /usr/lib/bats/bats-assert
+
+      - name: Setup
+        run: |
+          cat >test.bats <<'EOM'
+          bats_load_library bats-support
+          bats_load_library bats-assert
+
+          assert_equal "$SLACK_COLOR" 'success'
+          assert_equal "$SLACK_TITLE" 'CI test-matrix succeeded'
+          assert test -n "$SLACK_MESSAGE"
+          assert test -n "$SLACK_FOOTER"
+          EOM
+
+      - name: Test
+        run: bats test.bats
