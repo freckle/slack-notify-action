@@ -158,6 +158,11 @@ runs:
           author="$commit_author"
         fi
 
+        if [[ "$author" == '<@unknown>' ]]; then
+          cat "$GITHUB_ACTION_PATH/unknown.txt" >&2
+          author="$author ($commit_author)"
+        fi
+
         {
           echo "SLACK_MESSAGE<<EOM"
           printf '%s committed <%s|%s> %s (%s)\n' \
@@ -169,10 +174,6 @@ runs:
           echo "$MESSAGE"
           echo "EOM"
         } >>"$GITHUB_ENV"
-
-        if [[ "$author" == '<@unknown>' ]]; then
-          cat "$GITHUB_ACTION_PATH/unknown.txt" >&2
-        fi
       env:
         MESSAGE: ${{ inputs.message }}
 
