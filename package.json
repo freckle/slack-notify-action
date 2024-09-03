@@ -6,7 +6,7 @@
     "readme": "npx action-docs -u && sed -i 's/sha || github/sha \\\\|\\\\| github/' README.md && prettier --write README.md"
   },
   "devDependencies": {
-    "action-docs": "^2.4.2",
+    "action-docs": "^2.4.3",
     "prettier": "^3.3.3"
   }
 }
