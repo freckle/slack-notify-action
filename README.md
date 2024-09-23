@@ -38,6 +38,7 @@ Minimal inputs action to notify Slack of Job status
 | `job-name`          | <p>An explicit job-name, in cases where github.job (the job.id) won't work such as matrix jobs.</p>                                                                                                                                                                                                                   | `false`  | `""`                                                        |
 | `github-token`      |                                                                                                                                                                                                                                                                                                                       | `false`  | `${{ github.token }}`                                       |
 | `dry-run`           | <p>Don't actually notify (useful for testing)</p>                                                                                                                                                                                                                                                                     | `false`  | `false`                                                     |
+| `job-status`           | <p>An explicit job-status, in cases where the status of the current job is not the desired status to notify about.</p>                                                                                                                                                                                                                                                                     | `false`  | `''`                                                     |
 
 <!-- action-docs-inputs source="action.yml" -->
 
@@ -120,6 +121,13 @@ Minimal inputs action to notify Slack of Job status
     #
     # Required: false
     # Default: false
+
+    job-status:
+    # An explicit job-status, in cases where the status of the current job is not
+    # the desired status to notify about.
+    #
+    # Required: false
+    # Default: ''
 ```
 
 <!-- action-docs-usage action="action.yml" project="freckle/slack-notify-action" version="v1" -->
