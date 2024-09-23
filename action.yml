@@ -61,6 +61,13 @@ inputs:
     required: false
     default: ""
 
+  job-status:
+    description: |
+      An explicit job-status, in cases where the status of the current job is not
+      the desired status to notify about.
+    required: false
+    default: ""
+
   github-token:
     description: ""
     required: false
@@ -70,13 +77,6 @@ inputs:
     description: "Don't actually notify (useful for testing)"
     required: false
     default: false
-
-  job-status:
-    description: |
-      An explicit job-status, in cases where the status of the current job is not
-      the desired status to notify about.
-    required: false
-    default: ""
 
 runs:
   using: composite

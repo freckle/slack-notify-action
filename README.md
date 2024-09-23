@@ -36,9 +36,9 @@ Minimal inputs action to notify Slack of Job status
 | `slack-users`       | <p>A JSON object (as a string in the Yaml) mapping GitHub usernames to Slack User Ids (e.g. UXXXXXX). If present, the commit author is looked up in the map and the Slack user, if found, is at-mentioned in the notification details. If a Slack user is not found, an error is generated as a build annotation.</p> | `false`  | `""`                                                        |
 | `slack-users-file`  | <p>Relative path within the repository to read the slack-users JSON from a file. The file is read from the default branch via the API.</p>                                                                                                                                                                            | `false`  | `""`                                                        |
 | `job-name`          | <p>An explicit job-name, in cases where github.job (the job.id) won't work such as matrix jobs.</p>                                                                                                                                                                                                                   | `false`  | `""`                                                        |
+| `job-status`        | <p>An explicit job-status, in cases where the status of the current job is not the desired status to notify about.</p>                                                                                                                                                                                                | `false`  | `""`                                                        |
 | `github-token`      |                                                                                                                                                                                                                                                                                                                       | `false`  | `${{ github.token }}`                                       |
 | `dry-run`           | <p>Don't actually notify (useful for testing)</p>                                                                                                                                                                                                                                                                     | `false`  | `false`                                                     |
-| `job-status`        | <p>An explicit job-status, in cases where the status of the current job is not the desired status to notify about.</p>                                                                                                                                                                                                | `false`  | `''`                                                        |
 
 <!-- action-docs-inputs source="action.yml" -->
 
@@ -111,6 +111,13 @@ Minimal inputs action to notify Slack of Job status
     # Required: false
     # Default: ""
 
+    job-status:
+    # An explicit job-status, in cases where the status of the current job is not
+    # the desired status to notify about.
+    #
+    # Required: false
+    # Default: ""
+
     github-token:
     #
     # Required: false
@@ -121,13 +128,6 @@ Minimal inputs action to notify Slack of Job status
     #
     # Required: false
     # Default: false
-
-    job-status:
-    # An explicit job-status, in cases where the status of the current job is not
-    # the desired status to notify about.
-    #
-    # Required: false
-    # Default: ''
 ```
 
 <!-- action-docs-usage action="action.yml" project="freckle/slack-notify-action" version="v1" -->
