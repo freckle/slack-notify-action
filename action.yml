@@ -71,6 +71,13 @@ inputs:
     required: false
     default: false
 
+  job-status:
+    description: |
+      An explicit job-status, in cases where the status of the current job is not
+      the desired status to notify about.
+    required: false
+    default: ""
+
 runs:
   using: composite
   steps:
@@ -114,7 +121,7 @@ runs:
         event_name=${event_name:-${{ github.workflow }} ${{ github.job }}}
 
         {
-          case "${{ job.status }}" in
+          case "${{ inputs.job-status || job.status }}" in
             success)
               echo "SLACK_TITLE=$event_name succeeded"
               echo "SLACK_COLOR=success"
