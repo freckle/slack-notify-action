@@ -7,6 +7,6 @@
   },
   "devDependencies": {
     "action-docs": "^2.5.1",
-    "prettier": "^3.9.5"
+    "prettier": "^3.9.6"
   }
 }
