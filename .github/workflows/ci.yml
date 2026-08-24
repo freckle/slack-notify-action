@@ -30,14 +30,16 @@ jobs:
           bats_load_library bats-support
           bats_load_library bats-assert
 
-          assert_equal "$SLACK_COLOR" 'success'
-          assert_equal "$SLACK_TITLE" 'CI test succeeded'
-          assert test -n "$SLACK_FOOTER"
+          @test "SLACK_ environment" {
+            assert_equal "$SLACK_COLOR" 'success'
+            assert_equal "$SLACK_TITLE" 'CI test succeeded'
+            assert test -n "$SLACK_FOOTER"
 
-          run echo "$SLACK_MESSAGE"
-          assert_line --index 0 --regexp '^[^ ]* committed'
-          assert_line --index 1 'Some extra message content'
-          assert_line --index 2 'that is multi-line'
+            run echo "$SLACK_MESSAGE"
+            assert_line --index 0 --regexp '^[^ ]* committed'
+            assert_line --index 1 'Some extra message content'
+            assert_line --index 2 'that is multi-line'
+          }
           EOM
 
       - name: Test
@@ -73,10 +75,12 @@ jobs:
           bats_load_library bats-support
           bats_load_library bats-assert
 
-          assert_equal "$SLACK_COLOR" 'success'
-          assert_equal "$SLACK_TITLE" 'CI test-matrix succeeded'
-          assert test -n "$SLACK_MESSAGE"
-          assert test -n "$SLACK_FOOTER"
+          @test "SLACK_ environment" {
+            assert_equal "$SLACK_COLOR" 'success'
+            assert_equal "$SLACK_TITLE" 'CI test-matrix succeeded'
+            assert test -n "$SLACK_MESSAGE"
+            assert test -n "$SLACK_FOOTER"
+          }
           EOM
 
       - name: Test
