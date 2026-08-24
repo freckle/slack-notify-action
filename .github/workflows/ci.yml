@@ -20,6 +20,7 @@ jobs:
 
       - uses: bats-core/bats-action@4.0.0
         with:
+          bats-version: 1.13.0
           support-path: /usr/lib/bats/bats-support
           assert-path: /usr/lib/bats/bats-assert
 
@@ -40,7 +41,9 @@ jobs:
           EOM
 
       - name: Test
-        run: bats test.bats
+        run: bats --pretty test.bats
+        env:
+          TERM: xterm-256color
 
   test-matrix:
     runs-on: ubuntu-latest
@@ -60,6 +63,7 @@ jobs:
 
       - uses: bats-core/bats-action@4.0.0
         with:
+          bats-version: 1.13.0
           support-path: /usr/lib/bats/bats-support
           assert-path: /usr/lib/bats/bats-assert
 
@@ -76,4 +80,6 @@ jobs:
           EOM
 
       - name: Test
-        run: bats test.bats
+        run: bats --pretty test.bats
+        env:
+          TERM: xterm-256color
